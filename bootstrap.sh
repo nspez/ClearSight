@@ -4,7 +4,7 @@
 	 sudo apt-get install -y yum
 	 sudo apt-get install -y yum-utils
  	 sudo apt-get install -y apache2 
-	 sudo apt-get install -y openssl 
+	 sudo apt-get install -y openssl
     
      #sudo npm install -g grunt-cli. # grunt is already installed in this release
      # if /var/www is not a symlink then create the symlink and set up apache
@@ -65,9 +65,13 @@
 	sudo apt-get install -y libapache2-mod-php5
 	sudo apt-get install -y php-auth
 	sudo apt-get install -y php-auth-http
-   
-	0sudo pecl install memcache 
-
+ 	sudo apt-get install -y php5-fpm 
+ 	sudo apt-get install -y php5-suhosin 
+ 	sudo apt-get install -y php-apc 
+ 	sudo apt-get install -y php5-curl
+   	sudo pecl install memcache 
+	sudo aptitude install memcached php5-memcache
+	
 	sudo touch /etc/php5/conf.d/memcache.ini
 	sudo echo "extension=memcache.so" >> /etc/php5/conf.d/memcache.ini
 	sudo echo "memcache.hash_strategy=\"consistent\"" >> /etc/php5/conf.d/memcache.ini
@@ -142,6 +146,66 @@
 	#sudo ln -s /usr/share/twitter-bootstrap/files/ distln -s /usr/share/twitter-bootstrap/files/ /var/dist
 	sudo ln -s /etc/apache2/conf-available/libjs-twitter-bootstrap.conf /etc/apache2/conf-enabled/
 	
+	#php.ini modifications /etc/php5/conf.d/
+	#sed -i 's/session.save_handler/session.save_handler = memcache/' /etc/php5/apache2/php.ini
+	#sed -i 's/session.save_path /session.save_path = unix:/tmp/memcached.sock/' /etc/php5/apache2/php.ini
+	#session.save_handler = memcache
+	#session.save_path = unix:/tmp/memcached.sock
+	
+	# add includes into apache
+	sudo ln -s /etc/apache2/mods-available/include.load /etc/apache2/mods-enabled
+	sudo ln -s /etc/apache2/mods-available/session.load /etc/apache2/mods-enabled
+ 	sudo ln -s /etc/apache2/mods-available/session_crypto.load /etc/apache2/mods-enabled
+ 	sudo ln -s /etc/apache2/mods-available/session_cookie.load /etc/apache2/mods-enabled
+ 	sudo ln -s /etc/apache2/mods-available/session_dbd.load /etc/apache2/mods-enabled
+ 	
+ 	# need to fix server side includes need to modify the 000-default configuration file
+ 	# /etc/apache2/sites-available/000-default.conf
+ 	 
+ 	sudo sed -i '/<Directory \/>/a\     Options Includes' /etc/apache2/apache2.conf
+ 	echo "AddType text/html .shtml" > /etc/apache2/mods-enabled/include.conf
+ 	echo "AddOutputFilter INCLUDES .shtml" >> /etc/apache2/mods-enabled/include.conf
+ 	echo "AddOutputFilter INCLUDES .html"	>> /etc/apache2/mods-enabled/include.conf
+ 	
+ 	echo " <VirtualHost *:80>" > /etc/apache2/sites-available/000-default.conf
+ 	echo "        # The ServerName directive sets the request scheme, hostname and port that " >> /etc/apache2/sites-available/000-default.conf
+  	echo "       # the server uses to identify itself. This is used when creating " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        # redirection URLs. In the context of virtual hosts, the ServerName " >> /etc/apache2/sites-available/000-default.conf
+  	echo "       # specifies what hostname must appear in the request's Host: header to " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        # match this virtual host. For the default virtual host (this file) this " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        # value is not decisive as it is used as a last resort host regardless. " >> /etc/apache2/sites-available/000-default.conf
+  	echo "       # However, you must set it for any further virtual host explicitly. " >> /etc/apache2/sites-available/000-default.conf
+  	echo "       #ServerName www.example.com " >> /etc/apache2/sites-available/000-default.conf
+ 	echo " " >> /etc/apache2/sites-available/000-default.conf
+  	echo "       ServerAdmin webmaster@localhost " >> /etc/apache2/sites-available/000-default.conf
+  	echo "       DocumentRoot /var/www/html " >> /etc/apache2/sites-available/000-default.conf
+ 	echo " " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        # Available loglevels: trace8, ..., trace1, debug, info, notice, warn, " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        # error, crit, alert, emerg. " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        # It is also possible to configure the loglevel for particular " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        # modules, e.g. " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        #LogLevel info ssl:warn " >> /etc/apache2/sites-available/000-default.conf
+ 	echo " " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        ErrorLog ${APACHE_LOG_DIR}/error.log " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        CustomLog ${APACHE_LOG_DIR}/access.log combined " >> /etc/apache2/sites-available/000-default.conf
+ 	echo " " >> /etc/apache2/sites-available/000-default.conf
+  	echo "        # For most configuration files from conf-available/, which are " >> /etc/apache2/sites-available/000-default.conf
+   	echo "        # enabled or disabled at a global level, it is possible to " >> /etc/apache2/sites-available/000-default.conf
+    echo "        # include a line for only one particular virtual host. For example the " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        # following line enables the CGI configuration for this host only " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        # after it has been globally disabled with a2disconf. " >> /etc/apache2/sites-available/000-default.conf
+  	echo "        #Include conf-available/serve-cgi-bin.conf " >> /etc/apache2/sites-available/000-default.conf
+  	echo "       <Directory /var/www/> " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "                Options FollowSymlinks Includes " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "                AllowOverride None " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "                Order allow,deny " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "                Allow from All " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "        </directory> " >> /etc/apache2/sites-available/000-default.conf
+ 	echo "</VirtualHost> " >> /etc/apache2/sites-available/000-default.conf
+
+
+ 	
  	# restart apache
 	sudo service apache2 reload 
- 
+ 	echo "Clearview server configuration completed"
+ 	

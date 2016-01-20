@@ -1,0 +1,11 @@
+VB Information:
+ssh : 127.0.0.1:2222
+http: 127.0.0.1:8080
+ php info screen 127.0.0.1:8080/pi.php
+
+To do:
+  - fix server side includes
+  - develop appropriate login pages.
+  - set up sql server to load data
+  - parse & load CSV files
+  
